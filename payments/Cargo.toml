@@ -1,0 +1,26 @@
+[package]
+name = "payments"
+version = "0.1.0"
+authors = ["David Hernando <david.hernando@make.services>"]
+edition = "2018"
+
+[dependencies]
+hex = { version = "0.4.3", default-features = false }
+casper-contract = "1.4.4"
+casper-types = "1.5.0"
+contract-utils = { path = "../utils/contract-utils" }
+casper-event-standard = { version = "0.2.0", default-features = false }
+
+[[bin]]
+name = "execute_payment"
+path = "bin/execute_payment.rs"
+bench = false
+doctest = false
+test = false
+
+[[bin]]
+name = "payment_processor_contract"
+path = "bin/payment_processor_contract.rs"
+bench = false
+doctest = false
+test = false

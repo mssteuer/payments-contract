@@ -1,0 +1,34 @@
+{
+  "name": "casper-click-payments-client",
+  "version": "0.1.0",
+  "description": "CSPR.click Payments contract JS Client",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "scripts:install_payments": "ts-node install_payments.ts",
+    "scripts:pay": "ts-node pay.ts",
+    "scripts:transfer_to": "ts-node transfer_to.ts",
+    "scripts:cep18_install": "ts-node cep18_install.ts",
+    "scripts:cep18_transfer": "ts-node cep18_transfer.ts"
+  },
+  "keywords": [],
+  "author": "David Hernando <david.hernando@makes.services>",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/jest": "^29.2.4",
+    "@typescript-eslint/eslint-plugin": "^5.41.0",
+    "@typescript-eslint/parser": "^5.41.0",
+    "dotenv": "^16.0.1",
+    "prettier": "^2.7.1",
+    "ts-jest": "^29.0.3",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.7.4"
+  },
+  "dependencies": {
+    "@ethersproject/bignumber": "^5.7.0",
+    "casper-js-sdk": "2.10.1",
+    "commander": "^10.0.0",
+    "ts-results": "^3.3.0"
+  }
+}
+
