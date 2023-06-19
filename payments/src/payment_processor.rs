@@ -11,7 +11,7 @@ use casper_types::{ContractHash, Key, URef, U256, U512};
 
 use contract_utils::{ContractContext, ContractStorage};
 
-use crate::constants::{ARG_ADDRESS, BALANCE_OF_ENTRY_POINT_NAME, CEP18_TOKEN, CSPR_TOKEN};
+use crate::constants::{ARG_ADDRESS, BALANCE_OF_ENTRY_POINT_NAME, CSPR_TOKEN};
 use crate::data;
 use crate::data::{get_cep18_contract_hash, get_contract_owner, set_contract_cep18_balance};
 use crate::errors::Error;
@@ -19,11 +19,17 @@ use crate::events::{init_events, Payment};
 use casper_event_standard::emit;
 
 pub trait PaymentProcessor<Storage: ContractStorage>: ContractContext<Storage> {
-    fn init(&mut self, contract_name: String, cep18_contract_hash: ContractHash) {
+    fn init(
+        &mut self,
+        contract_name: String,
+        cep18_contract_hash: ContractHash,
+        cep18_symbol: String,
+    ) {
         data::set_cep18_contract_hash(cep18_contract_hash);
+        data::set_cep18_symbol(cep18_symbol);
+        data::set_contract_cep18_balance(U256::zero());
         data::new_contract_purse();
         data::set_contract_cspr_balance(U512::zero());
-        data::set_contract_cep18_balance(U256::zero());
         data::set_contract_name(contract_name);
         data::set_contract_owner(get_caller());
 
@@ -39,7 +45,6 @@ pub trait PaymentProcessor<Storage: ContractStorage>: ContractContext<Storage> {
         if deposit_balance != contract_balance.add(amount) {
             runtime::revert(Error::BalanceInsufficient);
         }
-        data::set_contract_cspr_balance(deposit_balance);
 
         emit(Payment {
             token: String::from(CSPR_TOKEN),
@@ -49,7 +54,17 @@ pub trait PaymentProcessor<Storage: ContractStorage>: ContractContext<Storage> {
         Ok(checkout_id)
     }
 
-    fn process_cep18_payment(&mut self, amount: U256, checkout_id: u64) -> Result<u64, Error> {
+    fn process_cep18_payment(
+        &mut self,
+        token: String,
+        amount: U256,
+        checkout_id: u64,
+    ) -> Result<u64, Error> {
+        let cep18_symbol = data::get_cep18_symbol();
+        if !cep18_symbol.eq(&token) {
+            runtime::revert(Error::WrongToken);
+        }
+
         let balance: U256 = runtime::call_contract(
             get_cep18_contract_hash(),
             BALANCE_OF_ENTRY_POINT_NAME,
@@ -64,9 +79,9 @@ pub trait PaymentProcessor<Storage: ContractStorage>: ContractContext<Storage> {
         }
 
         emit(Payment {
-            token: String::from(CEP18_TOKEN),
-            amount: U512::from(amount.as_u128()),
-            checkout_id,
+             token,
+             amount: U512::from(amount.as_u128()),
+             checkout_id,
         });
         Ok(checkout_id)
     }
@@ -87,6 +102,12 @@ pub trait PaymentProcessor<Storage: ContractStorage>: ContractContext<Storage> {
         data::set_contract_cspr_balance(U512::zero());
     }
 
+    fn update_contract_cspr_deposit_balance(&self) {
+        let deposit_purse_balance =
+            get_purse_balance(self.contract_cspr_deposit_uref()).unwrap_or_revert();
+        data::set_contract_cspr_balance(deposit_purse_balance);
+    }
+
     fn contract_cspr_deposit_uref(&self) -> URef {
         let contract_purse = data::get_contract_purse().unwrap_or_revert();
         contract_purse.into_add()
@@ -100,7 +121,12 @@ pub trait PaymentProcessor<Storage: ContractStorage>: ContractContext<Storage> {
         get_cep18_contract_hash()
     }
 
-    fn update_contract_cep18_balance(&self) {
+    fn update_contract_cep18_balance(&self, token: String) {
+        let cep18_symbol = data::get_cep18_symbol();
+        if !cep18_symbol.eq(&token) {
+            runtime::revert(Error::WrongToken);
+        }
+
         let balance: U256 = runtime::call_contract(
             get_cep18_contract_hash(),
             BALANCE_OF_ENTRY_POINT_NAME,

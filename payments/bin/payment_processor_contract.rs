@@ -15,11 +15,12 @@ use casper_types::{
     EntryPointType, EntryPoints, Group, Parameter, RuntimeArgs, URef, U512,
 };
 use contract_utils::{ContractContext, OnChainContractStorage};
-use payments::PaymentProcessor;
+use payments::{constants::ARG_CEP18_SYMBOL, PaymentProcessor};
 
 use payments::constants::{
-    ARG_AMOUNT, ARG_CEP18_CONTRACT_HASH, ARG_CHECKOUT_ID, ARG_CONTRACT_NAME, ARG_TARGET, ARG_TOKEN,
-    CEP18_TOKEN, CSPR_TOKEN, GET_CONTRACT_CSPR_DEPOSIT_UREF_ENTRY_POINT_NAME,
+    ARG_AMOUNT, ARG_CEP18_CONTRACT_HASH, ARG_CHECKOUT_ID, ARG_CONTRACT_NAME,
+    ARG_TARGET, ARG_TOKEN, CSPR_TOKEN,
+    GET_CONTRACT_CSPR_DEPOSIT_UREF_ENTRY_POINT_NAME,
     GET_UPDATED_CEP18_DEPOSIT_DATA_ENTRY_POINT_NAME, PROCESS_PAYMENT_ENTRY_POINT_NAME,
     TRANSFER_FUNDS_TO_ENTRY_POINT_NAME,
 };
@@ -36,8 +37,13 @@ impl ContractContext<OnChainContractStorage> for PaymentProcessorContract {
 impl PaymentProcessor<OnChainContractStorage> for PaymentProcessorContract {}
 
 impl PaymentProcessorContract {
-    fn constructor(&mut self, contract_name: String, cep18_contract_hash: ContractHash) {
-        PaymentProcessor::init(self, contract_name, cep18_contract_hash);
+    fn constructor(
+        &mut self,
+        contract_name: String,
+        cep18_contract_hash: ContractHash,
+        cep18_symbol: String,
+    ) {
+        PaymentProcessor::init(self, contract_name, cep18_contract_hash, cep18_symbol);
     }
 }
 
@@ -45,7 +51,12 @@ impl PaymentProcessorContract {
 fn constructor() {
     let contract_name: String = runtime::get_named_arg(ARG_CONTRACT_NAME);
     let cep18_contract_hash: ContractHash = runtime::get_named_arg(ARG_CEP18_CONTRACT_HASH);
-    PaymentProcessorContract::default().constructor(contract_name, cep18_contract_hash);
+    let cep18_symbol: String = runtime::get_named_arg(ARG_CEP18_SYMBOL);
+    PaymentProcessorContract::default().constructor(
+        contract_name,
+        cep18_contract_hash,
+        cep18_symbol,
+    );
 }
 
 #[no_mangle]
@@ -58,25 +69,29 @@ fn process_payment() {
         PaymentProcessorContract::default()
             .process_cspr_payment(amount, checkout_id)
             .unwrap_or_revert();
-    } else if CEP18_TOKEN.eq(&token) {
+    } else {
         PaymentProcessorContract::default()
-            .process_cep18_payment(U256::from(amount.as_u128()), checkout_id)
+            .process_cep18_payment(token, U256::from(amount.as_u128()), checkout_id)
             .unwrap_or_revert();
     }
 }
 
 #[no_mangle]
 fn get_contract_cspr_deposit_uref() {
+    PaymentProcessorContract::default().update_contract_cspr_deposit_balance();
     let ret = PaymentProcessorContract::default().contract_cspr_deposit_uref();
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
 
 #[no_mangle]
 fn get_updated_cep18_deposit_data() {
-    PaymentProcessorContract::default().update_contract_cep18_balance();
+    let token: String = runtime::get_named_arg(ARG_TOKEN);
+
+    PaymentProcessorContract::default().update_contract_cep18_balance(token);
 
     let cep18_contract_address = PaymentProcessorContract::default().cep18_contract_address();
-    let cep18_deposit_address = PaymentProcessorContract::default().contract_cep18_deposit_address();
+    let cep18_deposit_address =
+        PaymentProcessorContract::default().contract_cep18_deposit_address();
     runtime::ret(
         CLValue::from_t((cep18_contract_address, Key::from(cep18_deposit_address)))
             .unwrap_or_revert(),
@@ -95,11 +110,13 @@ fn call() {
     // Read arguments for the constructor call.
     let contract_name: String = runtime::get_named_arg(ARG_CONTRACT_NAME);
     let cep18_contract_hash: ContractHash = runtime::get_named_arg(ARG_CEP18_CONTRACT_HASH);
+    let cep18_symbol: String = runtime::get_named_arg(ARG_CEP18_SYMBOL);
 
     // Prepare constructor args
     let constructor_args = runtime_args! {
         ARG_CONTRACT_NAME => contract_name.clone(),
         ARG_CEP18_CONTRACT_HASH => cep18_contract_hash,
+        ARG_CEP18_SYMBOL => cep18_symbol,
     };
 
     let contract_package_hash_name: String = format!("{}_contract_package_hash", contract_name);
@@ -171,7 +188,7 @@ fn get_entry_points() -> EntryPoints {
     ));
     entry_points.add_entry_point(EntryPoint::new(
         GET_UPDATED_CEP18_DEPOSIT_DATA_ENTRY_POINT_NAME,
-        vec![],
+        vec![Parameter::new(ARG_TOKEN, String::cl_type())],
         CLType::Tuple2([Box::new(CLType::ByteArray(32)), Box::new(CLType::Key)]),
         EntryPointAccess::Public,
         EntryPointType::Contract,

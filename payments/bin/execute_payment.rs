@@ -12,14 +12,11 @@ use casper_contract::{
 };
 
 use casper_types::{runtime_args, ContractHash, Key, RuntimeArgs, URef, U256, U512};
-use payments::{
-    constants::{
-        ARG_AMOUNT, ARG_CHECKOUT_ID, ARG_PAYMENT_PROCESSOR_CONTRACT_HASH, ARG_RECIPIENT, ARG_TOKEN,
-        CEP18_TOKEN, CSPR_TOKEN, GET_CONTRACT_CSPR_DEPOSIT_UREF_ENTRY_POINT_NAME,
-        GET_UPDATED_CEP18_DEPOSIT_DATA_ENTRY_POINT_NAME, PROCESS_PAYMENT_ENTRY_POINT_NAME,
-        TRANSFER_ENTRY_POINT_NAME,
-    },
-    errors::Error,
+use payments::constants::{
+    ARG_AMOUNT, ARG_CHECKOUT_ID, ARG_PAYMENT_PROCESSOR_CONTRACT_HASH, ARG_RECIPIENT, ARG_TOKEN,
+    CSPR_TOKEN, GET_CONTRACT_CSPR_DEPOSIT_UREF_ENTRY_POINT_NAME,
+    GET_UPDATED_CEP18_DEPOSIT_DATA_ENTRY_POINT_NAME, PROCESS_PAYMENT_ENTRY_POINT_NAME,
+    TRANSFER_ENTRY_POINT_NAME,
 };
 
 #[no_mangle]
@@ -54,12 +51,14 @@ pub extern "C" fn call() {
                 ARG_CHECKOUT_ID => checkout_id,
             },
         )
-    } else if CEP18_TOKEN.eq(&token) {
+    } else {
         let (cep18_contract_hash, cep18_recipient_address) =
             runtime::call_contract::<(ContractHash, Key)>(
                 payment_processor_contract_hash,
                 GET_UPDATED_CEP18_DEPOSIT_DATA_ENTRY_POINT_NAME,
-                runtime_args! {},
+                runtime_args! {
+                    ARG_TOKEN => token.clone(),
+                },
             );
 
         runtime::call_contract::<()>(
@@ -80,7 +79,5 @@ pub extern "C" fn call() {
                 ARG_CHECKOUT_ID => checkout_id,
             },
         )
-    } else {
-        runtime::revert(Error::WrongToken);
     }
 }

@@ -1,11 +1,12 @@
-pub const CEP18_CONTRACT_HASH: &str = "beastleague_boin_contract_hash";
+pub const CEP18_CONTRACT_HASH: &str = "cep18_contract_hash";
+pub const CEP18_SYMBOL: &str = "cep18_symbol";
 
 pub const CSPR_TOKEN: &str = "CSPR";
-pub const CEP18_TOKEN: &str = "BOIN";
 
 pub const ARG_ADDRESS: &str = "address";
 pub const ARG_AMOUNT: &str = "amount";
 pub const ARG_CEP18_CONTRACT_HASH: &str = CEP18_CONTRACT_HASH;
+pub const ARG_CEP18_SYMBOL: &str = CEP18_SYMBOL;
 pub const ARG_CHECKOUT_ID: &str = "checkout_id";
 pub const ARG_CONTRACT_NAME: &str = "contract_name";
 pub const ARG_PAYMENT_PROCESSOR_CONTRACT_HASH: &str = "payment_processor_contract_hash";

@@ -8,7 +8,7 @@ use casper_types::{system::CallStackElement, ContractHash, ContractPackageHash, 
 use contract_utils::{get_key, set_key};
 
 use crate::constants::{
-    CEP18_CONTRACT_HASH, CONTRACT_NAME, CONTRACT_OWNER, CONTRACT_OWNER_CEP18_BALANCE,
+    CEP18_CONTRACT_HASH, CEP18_SYMBOL, CONTRACT_NAME, CONTRACT_OWNER, CONTRACT_OWNER_CEP18_BALANCE,
     CONTRACT_PURSE, CONTRACT_PURSE_CSPR_BALANCE,
 };
 
@@ -29,6 +29,14 @@ pub fn set_cep18_contract_hash(hash: ContractHash) {
 
 pub fn get_cep18_contract_hash() -> ContractHash {
     get_key(CEP18_CONTRACT_HASH).unwrap_or_revert()
+}
+
+pub fn set_cep18_symbol(symbol: String) {
+    set_key(CEP18_SYMBOL, symbol)
+}
+
+pub fn get_cep18_symbol() -> String {
+    get_key(CEP18_SYMBOL).unwrap_or_revert()
 }
 
 pub fn set_contract_cspr_balance(balance: U512) {

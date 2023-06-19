@@ -3,8 +3,8 @@ prepare:
 
 build-contract:
 	cargo build --release -p payments --target wasm32-unknown-unknown
-	wasm-strip target/wasm32-unknown-unknown/release/payment_processor_contract.wasm 2>/dev/null | true
-	wasm-strip target/wasm32-unknown-unknown/release/execute_payment.wasm 2>/dev/null | true
+	wasm-strip target/wasm32-unknown-unknown/release/payment_processor_contract.wasm 
+	wasm-strip target/wasm32-unknown-unknown/release/execute_payment.wasm 
 
 clippy:
 	cargo clippy --all-targets --all -- -D warnings
