@@ -44,8 +44,6 @@ export class CsprClickPaymentsClient {
 
         const runtimeArgs = RuntimeArgs.fromMap({
             contract_name: CLValueBuilder.string(args.contractName),
-            cep18_contract_hash: CLValueBuilder.byteArray(Uint8Array.from(Buffer.from(args.cep18ContractHash, "hex"))),
-            cep18_symbol: CLValueBuilder.string(args.cep18Symbol),
         });
 
         return this.contractClient.install(
@@ -74,9 +72,8 @@ export class CsprClickPaymentsClient {
 
         const runtimeArgs = RuntimeArgs.fromMap({
             payment_processor_contract_hash: CLValueBuilder.byteArray(Uint8Array.from(Buffer.from(args.paymentsContractHash, "hex"))),
-            token: CLValueBuilder.string(args.token),
             amount: CLValueBuilder.u512(args.amount),
-            checkout_id: CLValueBuilder.u64(args.checkoutId),
+            recipient: CLPublicKey.fromHex(args.recipient)
         });
 
         return this.contractClient.install(

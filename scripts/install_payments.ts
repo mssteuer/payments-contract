@@ -11,9 +11,7 @@ program
     .option('--keys_algo [value]', 'Crypto algo ed25519 | secp256K1', 'ed25519')
     .option('--node_url [value]', 'node URL in format {http://localhost:11101/rpc}')
     .option('--network_name [value]', 'network_name')
-    .option('--contract_name [value]', 'New contract name', "CSPR.click Payments")
-    .option('--cep18_contract_hash [value]', 'CEP18 contract hash')
-    .option('--cep18_symbol [value]', 'CEP18 token symbol');
+    .option('--contract_name [value]', 'New contract name', "CSPR.click Payments");
 
 program.parse();
 
@@ -28,11 +26,9 @@ const install_payments = async () => {
 
     const paymentsContractWasmBytes = getBinary("../target/wasm32-unknown-unknown/release/payment_processor_contract.wasm");
 
-    const installDeploy = await client.install(
+    const installDeploy = client.install(
         {
             contractName: options.contract_name,
-            cep18ContractHash: options.cep18_contract_hash,
-            cep18Symbol: options.cep18_symbol,
         },
         "110000000000",
         CONTRACT_OWNER.publicKey,

@@ -7,9 +7,7 @@
   "scripts": {
     "scripts:install_payments": "ts-node install_payments.ts",
     "scripts:pay": "ts-node pay.ts",
-    "scripts:transfer_to": "ts-node transfer_to.ts",
-    "scripts:cep18_install": "ts-node cep18_install.ts",
-    "scripts:cep18_transfer": "ts-node cep18_transfer.ts"
+    "scripts:transfer_to": "ts-node transfer_to.ts"
   },
   "keywords": [],
   "author": "David Hernando <david.hernando@makes.services>",

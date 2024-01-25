@@ -14,7 +14,7 @@ program
     .option('--payments_contract_hash [value]', 'hash of payments contract')
     .option('--token [value]', 'token symbol')
     .option('--amount [value]', 'buy payment amount')
-    .option('--checkout_id [value]', 'buy checkout id');
+    .option('--recipient [value]', 'where to deliver the purchase to');
 
 program.parse();
 const options = program.opts();
@@ -27,15 +27,14 @@ const pay = async () => {
 
     const paymentContractWasmBytes = getBinary("../target/wasm32-unknown-unknown/release/execute_payment.wasm");
 
-    const executionPaymentAmount = options.token === 'CSPR' ? 2000000000 : 5000000000;
+    const executionPaymentAmount = 2000000000;
 
-    const installDeployHash = await client.execute_payment(
+    const installDeployHash = client.execute_payment(
         options.payments_contract_hash,
         {
             paymentsContractHash: options.payments_contract_hash,
-            token: options.token,
             amount: options.amount,
-            checkoutId: options.checkout_id,
+            recipient: options.recipient,
         },
         executionPaymentAmount.toString(),
         BUYER.publicKey,
@@ -47,7 +46,7 @@ const pay = async () => {
 
     console.log(`... Payment contract installation deployHash: ${paymentDeployHash}`);
 
-    const deploy = await getDeploy(options.node_url!, paymentDeployHash);
+    await getDeploy(options.node_url!, paymentDeployHash);
 
     console.log(`... Payment successful`);
 };

@@ -1,7 +1,5 @@
-use alloc::string::String;
-
 use casper_event_standard::{emit, Event, Schemas};
-use casper_types::{Key, U512};
+use casper_types::{Key, PublicKey, U512};
 
 pub enum Event {
     Payment(Payment),
@@ -9,14 +7,19 @@ pub enum Event {
 
 #[derive(Event, Debug, PartialEq, Eq)]
 pub struct Payment {
-    pub token: String,
+    pub account: Key,
     pub amount: U512,
-    pub checkout_id: u64,
+    pub recipient: PublicKey,
 }
 
 #[derive(Event, Debug, PartialEq, Eq)]
 pub struct TransferFundsTo {
     pub target: Key,
+}
+
+#[derive(Event, Debug, PartialEq, Eq)]
+pub struct TransferTokenTo {
+    pub recipient: Key,
 }
 
 pub fn record_event(event: Event) {
@@ -26,6 +29,6 @@ pub fn record_event(event: Event) {
 }
 
 pub fn init_events() {
-    let schemas = Schemas::new().with::<Payment>().with::<TransferFundsTo>();
+    let schemas = Schemas::new().with::<Payment>().with::<TransferFundsTo>().with::<TransferTokenTo>();
     casper_event_standard::init(schemas);
 }
